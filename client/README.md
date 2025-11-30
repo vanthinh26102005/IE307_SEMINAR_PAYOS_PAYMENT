@@ -1,4 +1,4 @@
-  Tóm tắt các thay đổi:
+  Tóm tắt :
 
    * Cấu trúc dự án: Tạo thư mục server/ cho backend Node.js và client/ cho frontend React Native (Expo).
    * Backend (`server/`):
