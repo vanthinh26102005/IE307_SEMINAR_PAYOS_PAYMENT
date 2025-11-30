@@ -69,5 +69,13 @@
     "description": "Thanh toan don hang #123",
     "status": "PENDING",
     "createdAt": "2025-11-30T15:27:39.820Z"
+  },
+  {
+    "orderCode": 988760,
+    "amount": 2000,
+    "description": "Thanh toan don hang #123",
+    "status": "PAID",
+    "createdAt": "2025-11-30T21:59:48.761Z",
+    "transactionId": "FT25335885319971"
   }
 ]

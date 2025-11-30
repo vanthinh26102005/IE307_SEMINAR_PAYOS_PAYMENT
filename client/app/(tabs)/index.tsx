@@ -14,19 +14,18 @@ import * as Linking from 'expo-linking';
 import { useRouter } from 'expo-router';
 
 // --- CẤU HÌNH ---
-// Hãy đổi IP này thành IP máy tính của bạn nếu chạy trên điện thoại thật (VD: 192.168.1.x)
 const BACKEND_URL = 'http://localhost:4000';
-// const BACKEND_URL = 'http://10.0.2.2:4000'; // Dùng dòng này nếu chạy máy ảo Android
+// const BACKEND_URL = 'http://10.0.2.2:4000'; // Dùng dòng này nếu chạy máy ảo Android - @huutrix thay bằng đoàn này để test
 
-export default function HomeScreen() { // Changed from App to HomeScreen for expo-router
+export default function HomeScreen() { 
   const [loading, setLoading] = useState(false);
   const [currentOrderCode, setCurrentOrderCode] = useState<string | null>(null);
   const router = useRouter();
 
-  // Thông tin sản phẩm demo (Hardcode cho đẹp)
+  // mock data
   const PRODUCT = {
     name: "Nike Air Jordan 1 Low",
-    price: 2000, // Để 10k test cho rẻ
+    price: 2000, // nơi để giá (để 2k test cho rẻ)
     description: "Thanh toan don hang #123",
     image: "https://static.nike.com/a/images/t_PDP_1728_v1/f_auto,q_auto:eco/b1bcbca4-e853-4df7-b329-5be3c61ee057/air-jordan-1-low-shoes-6Q1tFM.png"
   };
@@ -89,7 +88,7 @@ export default function HomeScreen() { // Changed from App to HomeScreen for exp
       const returnUrl = Linking.createURL('payment-success', { queryParams: { orderCode: String(orderCode) } });
       const cancelUrl = Linking.createURL('payment-cancel', { queryParams: { orderCode: String(orderCode) } });
       
-      console.log('Return URL:', returnUrl); // Log để kiểm tra
+      console.log('Return URL:', returnUrl); 
       setCurrentOrderCode(String(orderCode));
 
       // Gọi endpoint mới: /payment/create-order
