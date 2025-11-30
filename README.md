@@ -69,17 +69,8 @@ Endpoint chính (server/index.js)
 - `GET /payment/orders` và `GET /payment/orders/:orderCode`
   - Dùng cho Admin tab để liệt kê/chi tiết đơn.
 
-Luồng demo nhanh
-----------------
-1) Bật backend + frontend.
-2) Tab Home → bấm “Thanh toán qua PayOS”:
-   - App gọi `/payment/create-order` → nhận `checkoutUrl` → mở trang thanh toán PayOS.
-   - `returnUrl/cancelUrl` là deep link (Expo) kèm `orderCode`.
-3) Thực hiện thanh toán (quét QR):
-   - PayOS gọi webhook → server verify → cập nhật đơn sang PAID.
-4) Mở tab Admin:
-   - Kéo refresh hoặc nút “Làm mới” để thấy đơn chuyển trạng thái PAID. Có thể chọn đơn để xem chi tiết (reference, paymentLinkId, thời gian).
-5) Demo `order-status`:
+
+*) Demo `order-status`:
    - Lấy `orderCode` (log khi tạo hoặc xem ở Admin).
    - Gọi: `curl http://localhost:4000/payment/order-status/<orderCode>` để thấy `PENDING` hoặc `PAID`.
 
@@ -90,16 +81,6 @@ Deep link
 - Khi success: app chuyển sang tab Admin, highlight order vừa thanh toán.
 - Khi cancel: app quay về Home.
 
-Bảo mật & lưu ý
----------------
-- `.env` đã lỡ push trước đây: hãy rotate key PayOS, xóa file khỏi git history nếu cần (git filter-repo/BFG), và chắc chắn `.env` nằm trong `.gitignore`.
-- Đang dùng JSON file `orders.json` để lưu demo; production cần DB thật và kiểm tra chữ ký webhook nghiêm ngặt (đã dùng SDK verify).
-
-Câu lệnh hữu ích
-----------------
-- Xóa file nhạy cảm khỏi index: `git rm --cached .env` (giữ file local).
-- Thêm vào ignore: `echo ".env" >> .gitignore`.
-
 Liên hệ & góp ý
 ---------------
-Pull request/issue được chào mừng. Nếu gặp lỗi PayOS, kiểm tra lại key, webhook URL, và log server. Nếu cần hỗ trợ thêm, tạo issue kèm log/ảnh minh họa. 
+Pull request/issue được chào mừng.
