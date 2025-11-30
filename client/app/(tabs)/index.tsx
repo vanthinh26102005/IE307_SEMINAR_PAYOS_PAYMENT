@@ -6,11 +6,12 @@ import {
   Image,
   TouchableOpacity,
   Alert,
-  Linking,
   ActivityIndicator,
   SafeAreaView,
   StatusBar
 } from 'react-native';
+import * as Linking from 'expo-linking';
+import { useRouter } from 'expo-router';
 
 // --- CẤU HÌNH ---
 // Hãy đổi IP này thành IP máy tính của bạn nếu chạy trên điện thoại thật (VD: 192.168.1.x)
@@ -19,22 +20,49 @@ const BACKEND_URL = 'http://localhost:4000';
 
 export default function HomeScreen() { // Changed from App to HomeScreen for expo-router
   const [loading, setLoading] = useState(false);
+  const [currentOrderCode, setCurrentOrderCode] = useState<string | null>(null);
+  const router = useRouter();
 
   // Thông tin sản phẩm demo (Hardcode cho đẹp)
   const PRODUCT = {
     name: "Nike Air Jordan 1 Low",
-    price: 1000, // Để 10k test cho rẻ
+    price: 2000, // Để 10k test cho rẻ
     description: "Thanh toan don hang #123",
     image: "https://static.nike.com/a/images/t_PDP_1728_v1/f_auto,q_auto:eco/b1bcbca4-e853-4df7-b329-5be3c61ee057/air-jordan-1-low-shoes-6Q1tFM.png"
   };
 
   useEffect(() => {
     // Xử lý khi App được mở lại từ PayOS (Deep link)
-    const handleDeepLink = ({ url }) => {
+    const handleDeepLink = ({ url }: { url: string }) => {
+      console.log('Deep link received:', url);
+      const parsed = Linking.parse(url);
+      const orderCodeFromLink = parsed.queryParams?.orderCode
+        ? String(parsed.queryParams.orderCode)
+        : undefined;
+
       if (url.includes('payment-success')) {
-        Alert.alert('Thanh toán thành công!', 'Cảm ơn bạn đã mua hàng.');
+        // THANH TOÁN THÀNH CÔNG -> Mở trang Admin Panel trong app
+        Alert.alert('Thanh toán thành công!', 'Đang chuyển hướng đến trang Admin...', [
+          {
+            text: 'OK',
+            onPress: () => {
+              router.replace({
+                pathname: '/(tabs)/admin',
+                params: {
+                  orderCode: orderCodeFromLink || currentOrderCode || '',
+                },
+              });
+            },
+          },
+        ]);
       } else if (url.includes('payment-cancel')) {
-        Alert.alert('Thanh toán thất bại', 'Bạn đã hủy giao dịch.');
+        // HỦY THANH TOÁN -> về trang chủ
+        Alert.alert('Đã hủy thanh toán', 'Bạn đã quay lại màn hình mua hàng.', [
+          {
+            text: 'OK',
+            onPress: () => router.replace('/(tabs)'),
+          },
+        ]);
       }
     };
 
@@ -48,22 +76,29 @@ export default function HomeScreen() { // Changed from App to HomeScreen for exp
     return () => {
       subscription.remove();
     };
-  }, []);
+  }, [currentOrderCode, router]);
+
+  const generateOrderCode = () => Math.floor(100000 + Math.random() * 900000);
 
   const createPaymentLink = async () => {
     setLoading(true);
     try {
-      const orderCode = Date.now().toString();
-      // Scheme deep link: client://
-      const returnUrl = `client://payment-success`;
-      const cancelUrl = `client://payment-cancel`;
+      const orderCode = generateOrderCode();
 
-      const response = await fetch(`${BACKEND_URL}/create-payment-link`, {
+      // Sử dụng Linking.createURL để tạo Deep Link chuẩn cho cả Expo Go và Development Build
+      const returnUrl = Linking.createURL('payment-success', { queryParams: { orderCode: String(orderCode) } });
+      const cancelUrl = Linking.createURL('payment-cancel', { queryParams: { orderCode: String(orderCode) } });
+      
+      console.log('Return URL:', returnUrl); // Log để kiểm tra
+      setCurrentOrderCode(String(orderCode));
+
+      // Gọi endpoint mới: /payment/create-order
+      const response = await fetch(`${BACKEND_URL}/payment/create-order`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           amount: PRODUCT.price,
-          orderCode: orderCode,
+          orderCode,
           description: PRODUCT.description,
           returnUrl: returnUrl,
           cancelUrl: cancelUrl,
@@ -71,6 +106,8 @@ export default function HomeScreen() { // Changed from App to HomeScreen for exp
       });
 
       const data = await response.json();
+      
+      console.log('Order created:', data.orderCode); // Log mã đơn hàng để debug
 
       if (response.ok && data.checkoutUrl) {
         const supported = await Linking.canOpenURL(data.checkoutUrl);
@@ -90,7 +127,7 @@ export default function HomeScreen() { // Changed from App to HomeScreen for exp
     }
   };
 
-  const formatCurrency = (amount) => {
+  const formatCurrency = (amount : any) => {
     return amount.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
   };
 
@@ -275,4 +312,3 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
-
